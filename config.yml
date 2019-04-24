@@ -1,0 +1,12 @@
+scaler_X: StandardScaler
+transforms_Y:
+- logit
+- log
+- logit
+scaler_Y: StandardScaler
+model_name: Ridge
+model_configs:
+  fit_intercept: false
+  random_state: 1126
+separate_targets: true
+sample_weight: reciprocal
