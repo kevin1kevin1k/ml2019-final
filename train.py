@@ -29,8 +29,8 @@ def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-f', '--ipykernal-file',
                         help='for compatibility in Jupyter')
-    parser.add_argument('-c', '--config-path', type=str, required=True,
-                        help='path to config file')
+    parser.add_argument('-c', '--config-path', type=str,
+                        help='path to config file', default='configs/config_Ridge.yml')
     parser.add_argument('-s', '--cv-splits', type=int,
                         help='number of splits for CV', default=5)
     parser.add_argument('-r', '--random-seed', type=int,
@@ -63,6 +63,9 @@ X_test = np.load(data_dir / 'X_test.npz')['arr_0']
 Y_train = np.load(data_dir / 'Y_train.npz')['arr_0']
 n_targets = Y_train.shape[1]
 
+X_train, unique_indices = np.unique(X_train, axis=0, return_index=True)
+Y_train = Y_train[unique_indices]
+
 if config['scaler_X']:
     scaler_X = getattr(sklearn.preprocessing, config['scaler_X'])()
     X_train_scaled = scaler_X.fit_transform(X_train)
@@ -75,10 +78,12 @@ Y_train_transformed = np.zeros_like(Y_train)
 
 transform_dict = {
     'logit': logit,
+    'logit_2y-1': lambda y: logit(2*y - 1),
     'log': np.log,
 }
 inv_transform_dict = {
     'logit': expit,
+    'logit_2y-1': lambda y: (expit(y) + 1) / 2,
     'log': np.exp,
 }
 
@@ -108,6 +113,13 @@ if sample_weight is not None:
     sample_weight = sample_weight[:size]
 
 
+def save_prediction(path, prediction, desc=None):
+    if desc is None:
+        desc = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    filename = Path(path) / 'prediction_{}.csv'.format(desc)
+    np.savetxt(filename, prediction, delimiter=',', fmt='%.18f')
+
+
 def scale_transform_clip(Y_scaled):
     if config['scaler_Y']:
         Y_transformed = scaler_Y.inverse_transform(Y_scaled)
@@ -121,13 +133,6 @@ def scale_transform_clip(Y_scaled):
     return np.clip(Y, [0, 0, 0.5], [1, float('inf'), 1])
 
 
-def save_prediction(path, prediction, desc=None):
-    if desc is None:
-        desc = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
-    filename = Path(path) / 'prediction_{}.csv'.format(desc)
-    np.savetxt(filename, prediction, delimiter=',', fmt='%.18f')
-
-
 class Error():
     def WMAE(Y_true, Y_pred):
         Y_true, Y_pred = map(scale_transform_clip, (Y_true, Y_pred))
@@ -139,13 +144,9 @@ class Error():
         Y_true, Y_pred = map(scale_transform_clip, (Y_true, Y_pred))
         sample_weight = 1 / Y_true
         e = mean_absolute_error(Y_true, Y_pred, sample_weight=sample_weight)
-        return e * np.sum(sample_weight)
+        return e
 
 score_funcs = {f: make_scorer(getattr(Error, f), greater_is_better=False) for f in ['WMAE', 'NAE']}
-
-
-# print(getattr(Error, 'NAE')(np.asarray([2, 4]), np.asarray([1, 3])))
-# print(getattr(Error, 'WMAE')(np.asarray([[0.01, 3, 0.07]]), np.asarray([[0.04, 9, 0.05]])))
 
 
 def gridCV_and_predict():
@@ -160,7 +161,6 @@ def gridCV_and_predict():
             model = MultiOutputRegressor(model)
 
         model.fit(X_train_scaled[:size], Y_train_scaled[:size], sample_weight=sample_weight)
-        model.predict(X_test_scaled)
         Y_pred = scale_transform_clip(model.predict(X_test_scaled))
         save_prediction('predictions', Y_pred, model_params)
 
