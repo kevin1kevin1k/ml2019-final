@@ -31,16 +31,19 @@ def parse_args():
                         help='for compatibility in Jupyter')
     parser.add_argument('-c', '--config-path', type=str,
                         help='path to config file', default='configs/config_Ridge.yml')
+    parser.add_argument('-d', '--data-path', type=str,
+                        help='path to data sets', default='data')
     parser.add_argument('-s', '--cv-splits', type=int,
                         help='number of splits for CV', default=5)
     parser.add_argument('-r', '--random-seed', type=int,
                         help='random seed for numpy and CV', default=1126)
-    parser.add_argument('-d', '--debug-mode', type=str2bool,
+    parser.add_argument('-b', '--debug-mode', type=str2bool,
                         help='faster debugging by using only the first 100 training data', default=True)
     args = parser.parse_args()
     
     return {
         'config': yaml.safe_load(open(args.config_path)),
+        'data_path': args.data_path,
         'n_splits': args.cv_splits,
         'seed': args.random_seed,
         'debug_mode': args.debug_mode
@@ -49,6 +52,7 @@ def parse_args():
 
 args = parse_args()
 config = args['config']
+data_path = args['data_path']
 n_splits = args['n_splits']
 seed = args['seed']
 debug_mode = args['debug_mode']
@@ -57,7 +61,7 @@ np.random.seed(seed)
 
 
 print('Loading data...')
-data_dir = Path('data')
+data_dir = Path(data_path)
 X_train = np.load(data_dir / 'X_train.npz')['arr_0']
 X_test = np.load(data_dir / 'X_test.npz')['arr_0']
 Y_train = np.load(data_dir / 'Y_train.npz')['arr_0']
