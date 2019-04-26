@@ -1,0 +1,14 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- logit
+- log
+- logit
+model: Ridge
+param_grid:
+  alpha: [0.01, 0.1, 1, 10, 100]
+  fit_intercept: [False]
+  random_state: [1126]
+separate_targets: True
+params_formatter: alpha_{alpha}
+sample_weight: target_reciprocal
