@@ -57,6 +57,9 @@ n_splits = args['n_splits']
 seed = args['seed']
 debug_mode = args['debug_mode']
 
+predictions_path = 'predictions'
+cv_results_path = 'cv_results'
+
 np.random.seed(seed)
 
 
@@ -117,10 +120,10 @@ if sample_weight is not None:
     sample_weight = sample_weight[:size]
 
 
-def save_prediction(path, prediction, desc=None):
+def save_prediction(prediction, desc=None):
     if desc is None:
         desc = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
-    filename = Path(path) / 'prediction_{}.csv'.format(desc)
+    filename = Path(predictions_path) / 'prediction_{}.csv'.format(desc)
     np.savetxt(filename, prediction, delimiter=',', fmt='%.18f')
 
 
@@ -154,10 +157,17 @@ score_funcs = {f: make_scorer(getattr(Error, f), greater_is_better=False) for f 
 
 
 def gridCV_and_predict():
+    csv_filename = model_name + ('_debug' if debug_mode else '') + '.csv'
+    csv_path = Path(cv_results_path) / csv_filename
+    is_new_model = not csv_path.exists()
+    done_params = [] if is_new_model else pd.read_csv(csv_path)['params'].tolist()
+
     df = pd.DataFrame(columns=['params', 'WMAE', 'NAE'])
     param_grid_tqdm = tqdm(param_grid, desc=model_name)
     for i, params in enumerate(param_grid_tqdm):
         params_desc = params_formatter.format(**params)
+        if params_desc in done_params:
+            continue
         model_params = model_name + '_' + params_desc
         param_grid_tqdm.set_description(model_params)
         model = model_class(**params)
@@ -166,7 +176,7 @@ def gridCV_and_predict():
 
         model.fit(X_train_scaled[:size], Y_train_scaled[:size], sample_weight=sample_weight)
         Y_pred = scale_transform_clip(model.predict(X_test_scaled))
-        save_prediction('predictions', Y_pred, model_params)
+        save_prediction(Y_pred, model_params)
 
         cv_results = cross_validate(model, X_train_scaled[:size], Y_train_scaled[:size],
                                     scoring=score_funcs,
@@ -176,7 +186,7 @@ def gridCV_and_predict():
         cv_errors.update({'params': params_desc})
         df.loc[i] = cv_errors
 
-    df.to_csv(Path('cv_results') / (model_name+'.csv'), index=False, float_format='%.6f')
+    df.to_csv(csv_path, index=False, float_format='%.6f', mode='a', header=is_new_model)
 
 
 print('Running grid CV...')
@@ -198,5 +208,5 @@ def find_best_params_and_predict(score_func):
     print('min error:', -gs.cv_results_['mean_test_score'][gs.best_index_])
     Y_pred = scale_transform_clip(gs.best_estimator_.predict(X_test_scaled))
     desc = model_name + '_' + params_formatter.format(**gs.best_params_)
-    save_prediction('predictions', Y_pred, desc)
+    save_prediction(Y_pred, desc)
 
