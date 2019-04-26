@@ -169,7 +169,8 @@ def gridCV_and_predict():
                                     cv=KFold(n_splits, random_state=seed),
                                     fit_params={'sample_weight': sample_weight})
         cv_errors = {f: -cv_results['test_'+f].mean() for f in ['WMAE', 'NAE']}
-        df.loc[i] = {'params': params_desc, **cv_errors}
+        cv_errors.update({'params': params_desc})
+        df.loc[i] = cv_errors
 
     df.to_csv(Path('cv_results') / (model_name+'.csv'), index=False, float_format='%.6f')
 
