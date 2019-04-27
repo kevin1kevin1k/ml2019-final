@@ -1,0 +1,12 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- logit
+- id
+- logit_2y-1
+model: Lars
+param_grid:
+  n_nonzero_coefs: [1, 10, 50, 100]
+  fit_intercept: [False]
+separate_targets: True
+params_formatter: nnzcoefs_{n_nonzero_coefs}
