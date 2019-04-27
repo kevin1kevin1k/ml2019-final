@@ -4,17 +4,19 @@
 import argparse
 from pathlib import Path
 import numpy as np
+import pandas as pd
 import yaml
 from copy import deepcopy
-import sklearn.preprocessing
-from scipy.special import logit, expit
-import models
 from tqdm import tqdm
-from sklearn.model_selection import ParameterGrid, GridSearchCV, cross_validate, KFold
-from multioutput import MultiOutputRegressor # sklearn does not support 2D sample weight
-from sklearn.metrics import mean_absolute_error, make_scorer
+from itertools import product
 from datetime import datetime
-import pandas as pd
+from scipy.special import logit, expit
+import sklearn.preprocessing
+from sklearn.model_selection import ParameterGrid, GridSearchCV, cross_validate, KFold
+from sklearn.metrics import mean_absolute_error, make_scorer
+
+import models
+from multioutput import MultiOutputRegressor # sklearn does not support 2D sample weight
 
 
 def str2bool(v):
@@ -107,22 +109,17 @@ else:
 model_name = config['model']
 model_class = getattr(models, model_name)
 param_grid = ParameterGrid(config['param_grid'])
+fit_param_grid = ParameterGrid(config['fit_param_grid'])
 params_formatter = config['params_formatter']
 separate_targets = config['separate_targets']
-sample_weight = config.get('sample_weight', None)
 size = 100 if debug_mode else X_train_scaled.shape[0]
-
-if sample_weight is not None:
-    if sample_weight == 'target_reciprocal':
-        sample_weight = 1 / Y_train
-    else:
-        raise ValueError('sample_weight {} is not supported'.format(sample_weight))
-    sample_weight = sample_weight[:size]
 
 
 def save_prediction(prediction, desc=None):
     if desc is None:
         desc = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    if debug_mode:
+        desc += '_debug'
     filename = Path(predictions_path) / 'prediction_{}.csv'.format(desc)
     np.savetxt(filename, prediction, delimiter=',', fmt='%.18f')
 
@@ -156,57 +153,52 @@ class Error():
 score_funcs = {f: make_scorer(getattr(Error, f), greater_is_better=False) for f in ['WMAE', 'NAE']}
 
 
+def parse_fit_params(fit_params):
+    parsed = dict(fit_params)
+    sample_weight_desc = fit_params.get('sample_weight', None)
+    if sample_weight_desc is not None:
+        if sample_weight_desc == 'uniform':
+            sample_weight = None
+        elif sample_weight_desc == 'target_reciprocal':
+            sample_weight = (1 / Y_train)[:size]
+        else:
+            raise ValueError('sample_weight {} is not supported'.format(sample_weight))
+        parsed['sample_weight'] = sample_weight
+
+    return parsed
+
 def gridCV_and_predict():
     csv_filename = model_name + ('_debug' if debug_mode else '') + '.csv'
     csv_path = Path(cv_results_path) / csv_filename
-    is_new_model = not csv_path.exists()
-    done_params = [] if is_new_model else pd.read_csv(csv_path)['params'].tolist()
+    done_params = pd.read_csv(csv_path)['params'].tolist() if csv_path.exists() else []
 
-    df = pd.DataFrame(columns=['params', 'WMAE', 'NAE'])
-    param_grid_tqdm = tqdm(param_grid, desc=model_name)
-    for i, params in enumerate(param_grid_tqdm):
-        params_desc = params_formatter.format(**params)
+    param_fit_param_grid = tqdm(product(param_grid, fit_param_grid), desc=model_name)
+    for params, fit_params in param_fit_param_grid:
+        params_desc = params_formatter.format(**params, **fit_params)
         if params_desc in done_params:
             continue
         model_params = model_name + '_' + params_desc
-        param_grid_tqdm.set_description(model_params)
+        param_fit_param_grid.set_description(model_params)
         model = model_class(**params)
         if separate_targets:
             model = MultiOutputRegressor(model)
 
-        model.fit(X_train_scaled[:size], Y_train_scaled[:size], sample_weight=sample_weight)
+        fit_params_ = parse_fit_params(fit_params)
+        model.fit(X_train_scaled[:size], Y_train_scaled[:size], **fit_params_)
         Y_pred = scale_transform_clip(model.predict(X_test_scaled))
         save_prediction(Y_pred, model_params)
 
         cv_results = cross_validate(model, X_train_scaled[:size], Y_train_scaled[:size],
                                     scoring=score_funcs,
                                     cv=KFold(n_splits, random_state=seed),
-                                    fit_params={'sample_weight': sample_weight})
+                                    fit_params=fit_params_)
         cv_errors = {f: -cv_results['test_'+f].mean() for f in ['WMAE', 'NAE']}
         cv_errors.update({'params': params_desc})
-        df.loc[i] = cv_errors
-
-    df.to_csv(csv_path, index=False, float_format='%.6f', mode='a', header=is_new_model)
+        df = pd.DataFrame(columns=['params', 'WMAE', 'NAE'])
+        df.loc[0] = cv_errors
+        df.to_csv(csv_path, index=False, float_format='%.6f', mode='a', header=not csv_path.exists())
 
 
 print('Running grid CV...')
 gridCV_and_predict()
-
-
-# Used for finding the best params only
-def find_best_params_and_predict(score_func):
-    model = model_class()
-    if separate_targets:
-        model = MultiOutputRegressor(model)
-
-    gs = GridSearchCV(model, param_grid=config['param_grid'],
-                      scoring=make_scorer(score_func, greater_is_better=False),
-                      cv=KFold(n_splits, random_state=seed),
-                      n_jobs=1)
-
-    gs.fit(X_train_scaled[:size], Y_train_scaled[:size], sample_weight=sample_weight)
-    print('min error:', -gs.cv_results_['mean_test_score'][gs.best_index_])
-    Y_pred = scale_transform_clip(gs.best_estimator_.predict(X_test_scaled))
-    desc = model_name + '_' + params_formatter.format(**gs.best_params_)
-    save_prediction(Y_pred, desc)
 
