@@ -75,7 +75,7 @@ n_targets = Y_train.shape[1]
 X_train, unique_indices = np.unique(X_train, axis=0, return_index=True)
 Y_train = Y_train[unique_indices]
 
-if config['scaler_X']:
+if 'scaler_X' in config:
     scaler_X = getattr(sklearn.preprocessing, config['scaler_X'])()
     X_train_scaled = scaler_X.fit_transform(X_train)
     X_test_scaled = scaler_X.transform(X_test)
@@ -86,11 +86,13 @@ else:
 Y_train_transformed = np.zeros_like(Y_train)
 
 transform_dict = {
+    'id': lambda y: y,
     'logit': logit,
     'logit_2y-1': lambda y: logit(2*y - 1),
     'log': np.log,
 }
 inv_transform_dict = {
+    'id': lambda y: y,
     'logit': expit,
     'logit_2y-1': lambda y: (expit(y) + 1) / 2,
     'log': np.exp,
@@ -99,7 +101,7 @@ inv_transform_dict = {
 for i, transform in enumerate(config['transforms_Y']):
     Y_train_transformed[:, i] = transform_dict[transform](Y_train[:, i])
 
-if config['scaler_Y']:
+if 'scaler_Y' in config:
     scaler_Y = getattr(sklearn.preprocessing, config['scaler_Y'])()
     Y_train_scaled = scaler_Y.fit_transform(Y_train_transformed)
 else:
@@ -109,9 +111,9 @@ else:
 model_name = config['model']
 model_class = getattr(models, model_name)
 param_grid = ParameterGrid(config['param_grid'])
-fit_param_grid = ParameterGrid(config['fit_param_grid'])
+fit_param_grid = ParameterGrid(config.get('fit_param_grid', {}))
 params_formatter = config['params_formatter']
-separate_targets = config['separate_targets']
+separate_targets = config.get('separate_targets', False)
 size = 100 if debug_mode else X_train_scaled.shape[0]
 
 
@@ -125,7 +127,7 @@ def save_prediction(prediction, desc=None):
 
 
 def scale_transform_clip(Y_scaled):
-    if config['scaler_Y']:
+    if 'scaler_Y' in config:
         Y_transformed = scaler_Y.inverse_transform(Y_scaled)
     else:
         Y_transformed = Y_scaled
