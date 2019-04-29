@@ -195,8 +195,8 @@ def gridCV_and_predict():
                                     cv=KFold(n_splits, random_state=seed),
                                     fit_params=fit_params_)
         cv_errors = {f: -cv_results['test_'+f].mean() for f in ['WMAE', 'NAE']}
-        cv_errors.update({'params': params_desc})
-        df = pd.DataFrame(columns=['params', 'WMAE', 'NAE'])
+        cv_errors.update({'model': model_name, 'params': params_desc})
+        df = pd.DataFrame(columns=['model', 'params', 'WMAE', 'NAE'])
         df.loc[0] = cv_errors
         df.to_csv(csv_path, index=False, float_format='%.6f', mode='a', header=not csv_path.exists())
 
