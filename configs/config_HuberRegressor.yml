@@ -1,0 +1,15 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- logit
+- log
+- logit_2y-1
+separate_targets: True
+model: HuberRegressor
+param_grid:
+  alpha: [0.000001, 0.00001, 0.0001, 0.001, 0.01]
+  epsilon: [1.1, 1.35, 1.5, 1.75, 1.9]
+  fit_intercept: [False]
+fit_param_grid:
+  sample_weight: [uniform, target_reciprocal]
+params_formatter: alpha_{alpha}_eps_{epsilon}_sw_{sample_weight}
