@@ -1,0 +1,18 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- logit
+- log
+- logit_2y-1
+separate_targets: False
+model: MLPRegressor
+param_grid:
+  hidden_layer_sizes:
+  - [200, 200]
+  - [200, 500]
+  - [500, 200]
+  - [500, 500]
+  - [200, 500, 200]
+  - [200, 500, 500, 200]
+  random_state: [1126]
+params_formatter: hidden_{hidden_layer_sizes}
