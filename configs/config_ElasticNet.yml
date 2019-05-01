@@ -1,0 +1,14 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- logit
+- log
+- logit_2y-1
+model: ElasticNet
+param_grid:
+  alpha: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1]
+  l1_ratio: [0.05, 0.1, 0.5, 0.9]
+  fit_intercept: [False]
+  random_state: [1126]
+separate_targets: True
+params_formatter: alpha_{alpha}_l1r_{l1_ratio}
