@@ -155,7 +155,7 @@ def scale_transform_clip(Y_scaled):
 class Error():
     def WMAE(Y_true, Y_pred):
         Y_true, Y_pred = map(scale_transform_clip, (Y_true, Y_pred))
-        weights = [200, 1, 300]
+        weights = [300, 1, 200]
         e = mean_absolute_error(Y_true, Y_pred, multioutput=weights)
         return e * sum(weights)
 
