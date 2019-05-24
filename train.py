@@ -35,6 +35,8 @@ def parse_args():
                         help='path to config file', default='configs/config_Ridge.yml')
     parser.add_argument('-d', '--data-path', type=str,
                         help='path to data sets', default='data')
+    parser.add_argument('-e', '--feature-config-path', type=str,
+                        help='path to feature config file', default='feature_configs/features_000.yml')
     parser.add_argument('-s', '--cv-splits', type=int,
                         help='number of splits for CV', default=5)
     parser.add_argument('-r', '--random-seed', type=int,
@@ -45,15 +47,17 @@ def parse_args():
     
     return {
         'config': yaml.safe_load(open(args.config_path)),
+        'feature_config': yaml.safe_load(open(args.feature_config_path)),
         'data_path': args.data_path,
         'n_splits': args.cv_splits,
         'seed': args.random_seed,
-        'debug_mode': args.debug_mode
+        'debug_mode': args.debug_mode,
     }
 
 
 args = parse_args()
 config = args['config']
+feature_config = args['feature_config']
 data_path = args['data_path']
 n_splits = args['n_splits']
 seed = args['seed']
@@ -67,8 +71,17 @@ np.random.seed(seed)
 
 print('Loading data...')
 data_dir = Path(data_path)
-X_train = np.load(data_dir / 'X_train.npz')['arr_0']
-X_test = np.load(data_dir / 'X_test.npz')['arr_0']
+
+def load_features(train_or_test):
+    features = []
+    for feature_name in feature_config['features']:
+        feature_filename = 'X_{}_{}.npz'.format(train_or_test, feature_name)
+        feature = np.load(data_dir / feature_filename)['arr_0']
+        features.append(feature)
+    return np.concatenate(features, axis=1)
+
+X_train = load_features('train')
+X_test = load_features('test')
 Y_train = np.load(data_dir / 'Y_train.npz')['arr_0']
 n_targets = Y_train.shape[1]
 
