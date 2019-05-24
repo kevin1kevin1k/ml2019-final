@@ -43,25 +43,18 @@ def parse_args():
                         help='random seed for numpy and CV', default=1126)
     parser.add_argument('-b', '--debug-mode', type=str2bool,
                         help='faster debugging by using only the first 100 training data', default=True)
-    args = parser.parse_args()
-    
-    return {
-        'config': yaml.safe_load(open(args.config_path)),
-        'feature_config': yaml.safe_load(open(args.feature_config_path)),
-        'data_path': args.data_path,
-        'n_splits': args.cv_splits,
-        'seed': args.random_seed,
-        'debug_mode': args.debug_mode,
-    }
+    return parser.parse_args()
 
 
 args = parse_args()
-config = args['config']
-feature_config = args['feature_config']
-data_path = args['data_path']
-n_splits = args['n_splits']
-seed = args['seed']
-debug_mode = args['debug_mode']
+config = yaml.safe_load(open(args.config_path))
+feature_config_path = args.feature_config_path
+feature_id = feature_config_path[-len('000.yml'):-len('.yml')]
+feature_config = yaml.safe_load(open(feature_config_path))
+data_path = args.data_path
+n_splits = args.cv_splits
+seed = args.random_seed
+debug_mode = args.debug_mode
 
 predictions_path = 'predictions'
 cv_results_path = 'cv_results'
@@ -183,7 +176,7 @@ def parse_fit_params(fit_params):
     return parsed
 
 def gridCV_and_predict():
-    csv_filename = model_name + ('_debug' if debug_mode else '') + '.csv'
+    csv_filename = '{}_{}{}.csv'.format(model_name, feature_id, ('_debug' if debug_mode else ''))
     csv_path = Path(cv_results_path) / csv_filename
     done_params = pd.read_csv(csv_path)['params'].tolist() if csv_path.exists() else []
 
@@ -192,8 +185,7 @@ def gridCV_and_predict():
         params_desc = params_formatter.format(**params, **fit_params)
         if params_desc in done_params:
             continue
-        model_params = model_name + '_' + params_desc
-        param_fit_param_grid.set_description(model_params)
+        param_fit_param_grid.set_description(params_desc)
         model = model_class(**params)
         if separate_targets:
             model = MultiOutputRegressor(model)
@@ -201,7 +193,7 @@ def gridCV_and_predict():
         fit_params_ = parse_fit_params(fit_params)
         model.fit(X_train_scaled[:size], Y_train_scaled[:size], **fit_params_)
         Y_pred = scale_transform_clip(model.predict(X_test_scaled))
-        save_prediction(Y_pred, model_params)
+        save_prediction(Y_pred, '{}{}{}'.format(model_name, feature_id, params_desc))
 
         cv_results = cross_validate(model, X_train_scaled[:size], Y_train_scaled[:size],
                                     scoring=score_funcs,
