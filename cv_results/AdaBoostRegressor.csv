@@ -1,0 +1,7 @@
+model,params,WMAE,NAE
+AdaBoostRegressor,ne_50_lr_0.01_sw_uniform,94.985925,14.955043
+AdaBoostRegressor,ne_50_lr_0.01_sw_target_reciprocal,120.921793,13.586308
+AdaBoostRegressor,ne_100_lr_0.01_sw_uniform,93.593334,14.686511
+AdaBoostRegressor,ne_100_lr_0.01_sw_target_reciprocal,120.549518,13.494300
+AdaBoostRegressor,ne_150_lr_0.01_sw_uniform,92.680531,14.458065
+AdaBoostRegressor,ne_150_lr_0.01_sw_target_reciprocal,119.189053,13.419566

@@ -1,0 +1,15 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- logit
+- log
+- logit_2y-1
+separate_targets: True
+model: AdaBoostRegressor
+param_grid:
+  n_estimators: [50, 100, 150]
+  learning_rate: [0.01]
+  random_state: [1126]
+fit_param_grid:
+  sample_weight: [uniform, target_reciprocal]
+params_formatter: ne_{n_estimators}_lr_{learning_rate}_sw_{sample_weight}
