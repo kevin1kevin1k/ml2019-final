@@ -14,6 +14,7 @@ from scipy.special import logit, expit
 import sklearn.preprocessing
 from sklearn.model_selection import ParameterGrid, GridSearchCV, cross_validate, KFold
 from sklearn.metrics import mean_absolute_error, make_scorer
+import pickle
 
 import models
 from multioutput import MultiOutputRegressor # sklearn does not support 2D sample weight
@@ -39,6 +40,8 @@ def parse_args():
                         help='path to feature config file', default='feature_configs/features_000.yml')
     parser.add_argument('-s', '--cv-splits', type=int,
                         help='number of splits for CV', default=5)
+    parser.add_argument('-v', '--save-model', type=str2bool,
+                        help='whether to save the models with best CV scores', default=False)
     parser.add_argument('-r', '--random-seed', type=int,
                         help='random seed for numpy and CV', default=1126)
     parser.add_argument('-b', '--debug-mode', type=str2bool,
@@ -53,6 +56,7 @@ feature_id = feature_config_path[-len('000.yml'):-len('.yml')]
 feature_config = yaml.safe_load(open(feature_config_path))
 data_path = args.data_path
 n_splits = args.cv_splits
+save_model = args.save_model
 seed = args.random_seed
 debug_mode = args.debug_mode
 
@@ -193,7 +197,10 @@ def gridCV_and_predict():
         fit_params_ = parse_fit_params(fit_params)
         model.fit(X_train_scaled[:size], Y_train_scaled[:size], **fit_params_)
         Y_pred = scale_transform_clip(model.predict(X_test_scaled))
-        save_prediction(Y_pred, '{}{}{}'.format(model_name, feature_id, params_desc))
+        desc = '{}_{}_{}'.format(model_name, feature_id, params_desc)
+        save_prediction(Y_pred, desc)
+        if save_model:
+            pickle.dump(model, open('models/{}.pkl'.format(desc), 'wb'))
 
         cv_results = cross_validate(model, X_train_scaled[:size], Y_train_scaled[:size],
                                     scoring=score_funcs,
