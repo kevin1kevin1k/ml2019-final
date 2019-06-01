@@ -1,0 +1,18 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- id
+- id
+- id
+separate_targets: True
+model: ExtraTreesRegressor 
+param_grid:
+  n_estimators: [128, 256, 512]
+  max_depth: [6, 12, 18, 24]
+  criterion: ['mae']
+  max_features: [1000]
+  n_jobs: [6]
+  random_state: [1126]
+fit_param_grid:
+  sample_weight: ['target_reciprocal']
+params_formatter: ne_{n_estimators}_md_{max_depth}
