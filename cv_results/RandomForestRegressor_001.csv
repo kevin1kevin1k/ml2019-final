@@ -1,0 +1,13 @@
+model,params,WMAE,NAE
+RandomForestRegressor,ne_20_md_5,119.810521,14.712460
+RandomForestRegressor,ne_50_md_5,119.526812,14.764076
+RandomForestRegressor,ne_100_md_5,120.216686,14.791821
+RandomForestRegressor,ne_20_md_10,84.005923,9.633554
+RandomForestRegressor,ne_50_md_10,83.366201,9.606377
+RandomForestRegressor,ne_100_md_10,83.631309,9.619425
+RandomForestRegressor,ne_20_md_20,78.831762,9.186694
+RandomForestRegressor,ne_50_md_20,77.512403,9.067888
+RandomForestRegressor,ne_100_md_20,77.412023,9.038129
+RandomForestRegressor,ne_20_md_30,78.752174,9.170961
+RandomForestRegressor,ne_50_md_30,77.558725,9.063340
+RandomForestRegressor,ne_100_md_30,77.433256,9.034689
