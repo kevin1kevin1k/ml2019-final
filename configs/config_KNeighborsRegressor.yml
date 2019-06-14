@@ -1,0 +1,12 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- logit
+- log
+- logit_2y-1
+separate_targets: True
+model: KNeighborsRegressor
+param_grid:
+  n_neighbors: [3, 5, 7]
+  n_jobs: [16]
+params_formatter: nbs_{n_neighbors}
