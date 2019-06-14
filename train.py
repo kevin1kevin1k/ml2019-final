@@ -17,6 +17,7 @@ import pickle
 
 import models
 from multioutput import MultiOutputRegressor # sklearn does not support 2D sample weight
+from gen_features import FeatureGen
 
 
 def str2bool(v):
@@ -75,12 +76,20 @@ error_names = config.get('error_funcs', ['WMAE', 'NAE'])
 
 print('Loading data...')
 data_dir = Path(data_path)
+feagen = None
 
 def load_features(train_or_test):
+    global feagen
+
     features = []
     for feature_name in feature_config['features']:
         feature_filename = 'X_{}_{}.npz'.format(train_or_test, feature_name)
-        feature = np.load(data_dir / feature_filename)['arr_0']
+        feature_path = data_dir / feature_filename
+        if not feature_path.exists():
+            if feagen is None:
+                feagen = FeatureGen()
+            getattr(feagen, 'gen_{}'.format(feature_name))(train_or_test)
+        feature = np.load(feature_path)['arr_0']
         features.append(feature)
     return np.concatenate(features, axis=1)
 

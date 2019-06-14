@@ -1,0 +1,6 @@
+features:
+- first_half_stats
+- first_half_mean_per_100
+- last_half_group_min
+- last_half_rfft_first500_20peaks
+- last_half_last_group
