@@ -21,3 +21,5 @@ from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 
+from xgboost import XGBRegressor
+from lightgbm import LGBMRegressor

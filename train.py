@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from copy import deepcopy
 from tqdm import tqdm
 from itertools import product
 from datetime import datetime
@@ -16,7 +15,6 @@ from sklearn.model_selection import ParameterGrid, train_test_split
 import pickle
 
 import models
-from multioutput import MultiOutputRegressor # sklearn does not support 2D sample weight
 from gen_features import FeatureGen
 
 
@@ -87,7 +85,7 @@ def load_features(train_or_test):
         feature_path = data_dir / feature_filename
         if not feature_path.exists():
             if feagen is None:
-                feagen = FeatureGen()
+                feagen = FeatureGen(data_dir)
             getattr(feagen, 'gen_{}'.format(feature_name))(train_or_test)
         feature = np.load(feature_path)['arr_0']
         features.append(feature)
@@ -107,8 +105,8 @@ if 'scaler_X' in config:
     X_train_scaled = scaler_X.fit_transform(X_train)
     X_test_scaled = scaler_X.transform(X_test)
 else:
-    X_train_scaled = deepcopy(X_train)
-    X_test_scaled = deepcopy(X_test)
+    X_train_scaled = X_train
+    X_test_scaled = X_test
 
 Y_train_transformed = np.zeros_like(Y_train)
 
@@ -132,7 +130,7 @@ if 'scaler_Y' in config:
     scaler_Y = getattr(sklearn.preprocessing, config['scaler_Y'])()
     Y_train_scaled = scaler_Y.fit_transform(Y_train_transformed)
 else:
-    Y_train_scaled = deepcopy(Y_train_transformed)
+    Y_train_scaled = np.copy(Y_train_transformed)
 
 size = 100 if debug_mode else X_train_scaled.shape[0]
 va_size = 10 if debug_mode else 2500
@@ -140,6 +138,7 @@ X_train_scaled = X_train_scaled[:size]
 Y_train_scaled = Y_train_scaled[:size]
 X_tr, X_va, Y_tr, Y_va = train_test_split(X_train_scaled, Y_train_scaled,
                                           test_size=va_size, shuffle=False)
+
 print('Finish!')
 
 
@@ -211,26 +210,33 @@ def grid_and_predict():
     csv_path = Path(va_results_path) / csv_filename
     done_params = pd.read_csv(csv_path)['params'].tolist() if csv_path.exists() else []
 
-    param_fit_param_grid = tqdm(product(param_grid, fit_param_grid), desc=model_name)
+    total = len(param_grid) * len(fit_param_grid)
+    param_fit_param_grid = tqdm(product(param_grid, fit_param_grid), desc=model_name, total=total)
     for params, fit_params in param_fit_param_grid:
         params_desc = params_formatter.format(**params, **fit_params)
         if params_desc in done_params:
             continue
 
-        param_fit_param_grid.set_description(params_desc)
         fit_params_ = parse_fit_params(fit_params, va=False)
-        model = MultiOutputRegressor(model_class(**params))
-        model.fit(X_train_scaled, Y_train_scaled, **fit_params_)
-        Y_pred = scale_transform_clip(model.predict(X_test_scaled))
+        Y_pred = np.zeros((X_test_scaled.shape[0], n_targets))
+        for i in range(n_targets):
+            model = model_class(**params)
+            model.fit(X_train_scaled, np.ascontiguousarray(Y_train_scaled[:, i]), **fit_params_)
+            Y_pred[:, i] = model.predict(X_test_scaled)
+        Y_pred = scale_transform_clip(Y_pred)
+
         desc = '{}_{}_{}'.format(model_name, feature_id, params_desc)
         save_prediction(Y_pred, desc)
         if save_model:
-            pickle.dump(model, open('models/{}.pkl'.format(desc), 'wb'))
+            pickle.dump(model,
+                        open('models/{}.pkl'.format(desc + ('_debug' if debug_mode else '')), 'wb'))
 
         fit_params_ = parse_fit_params(fit_params, va=True)
-        model = MultiOutputRegressor(model_class(**params))
-        model.fit(X_tr, Y_tr, **fit_params_)
-        Y_pred = model.predict(X_va)
+        Y_pred = np.zeros_like(Y_va)
+        for i in range(n_targets):
+            model = model_class(**params)
+            model.fit(X_tr, np.ascontiguousarray(Y_tr[:, i]), **fit_params_)
+            Y_pred[:, i] = model.predict(X_va)
 
         columns = [f + target for f in error_names
                               for target in [''] + ['_' + str(i+1) for i in range(n_targets)]]

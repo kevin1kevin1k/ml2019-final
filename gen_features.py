@@ -12,8 +12,8 @@ from pathlib import Path
 
 
 class FeatureGen(object):
-    def __init__(self):
-        self.data_dir = Path('data')
+    def __init__(self, data_dir):
+        self.data_dir = data_dir
 
         self.X_train = np.load(self.data_dir / 'X_train.npz')['arr_0']
         self.X_test = np.load(self.data_dir / 'X_test.npz')['arr_0']
@@ -123,7 +123,7 @@ class FeatureGen(object):
 
 
 if __name__ == '__main__':
-    feagen = FeatureGen()
+    feagen = FeatureGen(input('Data dir: ').strip())
     for gen in dir(feagen):
         if gen.startswith('gen'):
             for train_or_test in ['train', 'test']:

@@ -127,9 +127,9 @@ class MultiOutputEstimator(BaseEstimator, MetaEstimatorMixin,
         self.estimators_ = Parallel(n_jobs=self.n_jobs)(
             delayed(_partial_fit_estimator)(
                 self.estimators_[i] if not first_time else self.estimator,
-                X, y[:, i],
+                X, np.ascontiguousarray(y[:, i]),
                 classes[i] if classes is not None else None,
-                sample_weight[i], first_time) for i in range(y.shape[1]))
+                np.ascontiguousarray(sample_weight[i]), first_time) for i in range(y.shape[1]))
         return self
 
     def fit(self, X, y, sample_weight=None):
@@ -189,7 +189,7 @@ class MultiOutputEstimator(BaseEstimator, MetaEstimatorMixin,
 
         self.estimators_ = Parallel(n_jobs=self.n_jobs)(
             delayed(_fit_estimator)(
-                self.estimator, X, y[:, i], sample_weight[i])
+                self.estimator, X, np.ascontiguousarray(y[:, i]), sample_weight[i])
             for i in range(y.shape[1]))
         return self
 
