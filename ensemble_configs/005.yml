@@ -1,0 +1,4 @@
+- ['XGBRegressor_000', 'min', 10]
+- ['XGBRegressor_001', 'min', 10]
+- ['XGBRegressor_004', 'min', 20]
+- ['LGBMRegressor_004', 'min', 20]
