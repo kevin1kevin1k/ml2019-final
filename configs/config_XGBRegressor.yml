@@ -1,0 +1,23 @@
+scaler_X: StandardScaler
+scaler_Y: StandardScaler
+transforms_Y:
+- logit
+- log
+- logit_2y-1
+separate_targets: False
+model: XGBRegressor
+param_grid:
+  n_estimators: [50, 100, 150]
+  max_depth: [5, 10, 20, 30]
+  learning_rate: [0.1, 0.3]
+  reg_lambda: [0, 0.01]
+  min_child_weight: [1, 3, 5]
+  subsample: [0.8, 1.0]
+  colsample_bytree: [0.8, 1.0]
+  colsample_bynode: [0.8, 1.0]
+  objective: [reg:linear]
+  random_state: [1126]
+  n_jobs: [16]
+fit_param_grid:
+  sample_weight: [uniform, target_reciprocal]
+params_formatter: ne_{n_estimators}_md_{max_depth}_lr_{learning_rate}_ld_{reg_lambda}_mcw_{min_child_weight}_subs_{subsample}_cstree_{colsample_bytree}_csnode_{colsample_bynode}_sw_{sample_weight}

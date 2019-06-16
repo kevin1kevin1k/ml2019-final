@@ -1,0 +1,17 @@
+model,params,WMAE,WMAE_1,WMAE_2,WMAE_3,NAE,NAE_1,NAE_2,NAE_3
+XGBRegressor,ne_100_md_10_lr_0.1_ld_0_mcw_3_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,46.467826,0.088574,18.634115,0.006307,0.453953,0.308993,0.136145,0.008815
+XGBRegressor,ne_100_md_10_lr_0.1_ld_0.01_mcw_3_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,47.017377,0.090086,18.726828,0.006324,0.463681,0.318645,0.136188,0.008847
+XGBRegressor,ne_100_md_10_lr_0.1_ld_0_mcw_5_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,47.393981,0.091084,18.806662,0.006311,0.469490,0.322746,0.137910,0.008834
+XGBRegressor,ne_100_md_10_lr_0.1_ld_0.01_mcw_5_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,47.021880,0.089795,18.826657,0.006284,0.472504,0.325854,0.137881,0.008769
+XGBRegressor,ne_100_md_20_lr_0.1_ld_0_mcw_3_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,45.652112,0.088380,17.898178,0.006200,0.461573,0.320349,0.132521,0.008703
+XGBRegressor,ne_100_md_20_lr_0.1_ld_0.01_mcw_3_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,45.676571,0.087993,18.051550,0.006135,0.461435,0.319444,0.133382,0.008609
+XGBRegressor,ne_100_md_20_lr_0.1_ld_0_mcw_5_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,45.420822,0.087634,17.903193,0.006138,0.473171,0.332477,0.132086,0.008608
+XGBRegressor,ne_100_md_20_lr_0.1_ld_0.01_mcw_5_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,45.524795,0.088014,17.872555,0.006241,0.465443,0.325510,0.131186,0.008748
+XGBRegressor,ne_100_md_10_lr_0.3_ld_0_mcw_3_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,49.825117,0.096392,19.509843,0.006988,0.507375,0.351942,0.145666,0.009766
+XGBRegressor,ne_100_md_10_lr_0.3_ld_0.01_mcw_3_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,49.412853,0.095941,19.223556,0.007035,0.496612,0.340881,0.145897,0.009833
+XGBRegressor,ne_100_md_10_lr_0.3_ld_0_mcw_5_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,49.054158,0.095589,18.983744,0.006969,0.495481,0.344031,0.141672,0.009778
+XGBRegressor,ne_100_md_10_lr_0.3_ld_0.01_mcw_5_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,49.701528,0.096231,19.420862,0.007057,0.533417,0.377319,0.146232,0.009865
+XGBRegressor,ne_100_md_20_lr_0.3_ld_0_mcw_3_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,48.860166,0.093590,19.427062,0.006780,0.483090,0.328182,0.145385,0.009523
+XGBRegressor,ne_100_md_20_lr_0.3_ld_0.01_mcw_3_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,49.181359,0.094209,19.534148,0.006923,0.486235,0.330676,0.145813,0.009746
+XGBRegressor,ne_100_md_20_lr_0.3_ld_0_mcw_5_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,50.199425,0.097581,19.558926,0.006831,0.498132,0.342447,0.146079,0.009605
+XGBRegressor,ne_100_md_20_lr_0.3_ld_0.01_mcw_5_subs_0.8_cstree_0.8_csnode_0.8_sw_uniform,49.720997,0.097131,19.202944,0.006893,0.499281,0.344981,0.144623,0.009677
