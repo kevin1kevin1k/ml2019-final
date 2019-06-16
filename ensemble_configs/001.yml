@@ -1,0 +1,4 @@
+- ['XGBRegressor', 'min', 10]
+- ['XGBRegressor', 'random', 10]
+- ['Ridge', 'min', 5]
+- ['ElasticNet', 'min', 5]

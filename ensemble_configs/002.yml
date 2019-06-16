@@ -1,0 +1,2 @@
+- ['XGBRegressor', 'min', 50]
+- ['XGBRegressor', 'random', 50]
