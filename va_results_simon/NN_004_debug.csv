@@ -1,0 +1,5 @@
+model,params,WMAE,WMAE_1,WMAE_2,WMAE_3,NAE,NAE_1,NAE_2,NAE_3
+NN,"hidden_[200, 200]_drop_0.0_sep_False_traY_['logit', 'log', 'logit_2y-1']_bs_256_loss_nae",162.626414,0.362998,46.683305,0.035219,2.762227,1.980201,0.739284,0.042742
+NN,"hidden_[200, 200]_drop_0.1_sep_False_traY_['logit', 'log', 'logit_2y-1']_bs_256_loss_nae",162.555862,0.366438,38.292136,0.071662,3.024393,2.193193,0.746741,0.084459
+NN,"hidden_[200, 200]_drop_0.0_sep_False_traY_['logit', 'log', 'logit_2y-1']_bs_256_loss_mae",112.955735,0.260958,31.119531,0.017744,1.947831,1.664241,0.261607,0.021983
+NN,"hidden_[200, 200]_drop_0.1_sep_False_traY_['logit', 'log', 'logit_2y-1']_bs_256_loss_mae",115.574959,0.254262,31.624208,0.038361,1.834565,1.490394,0.295937,0.048234
