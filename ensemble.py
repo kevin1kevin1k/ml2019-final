@@ -63,18 +63,33 @@ for target in range(3):
             print('how error')
 
         preds = []
-    #     errs = []
+        errs = []
         for _, row in df.iterrows():
             pred_name = 'prediction_{}_{}_{}.csv'.format(row['model'], row['feature'], row['params'])
             pred_path = va_predictions / pred_name
             preds.append(pd.read_csv(pred_path, header=None)[target].values)
-    #         errs.append(row[error_target])
+            errs.append(row[error_target])
 
         if blending == 'uniform':
             Y_pred[:, target] = np.average(preds, axis=0)
+        elif blending == 'validation':
+            Y_pred[:, target] = np.average(preds, axis=0, weights=1/np.array(errs))
         else:
             print('blending error')
 
 filename = ensembles / 'ensemble_{}_{}_{}.csv'.format(Path(ensemble_config_path).stem, blending, error)
 np.savetxt(filename, Y_pred, delimiter=',', fmt='%.18f')
+
+
+# In[167]:
+
+
+# preds = []
+# for md in [20, 30]:
+#     for f in Path('predictions/').glob('prediction_RandomForest*_md_{}.csv'.format(md)):
+#         preds.append(pd.read_csv(f, header=None).values)
+# Y_pred = np.average(preds, axis=0)
+
+# filename = ensembles / 'ensemble_RandomForest_6.csv'
+# np.savetxt(filename, Y_pred, delimiter=',', fmt='%.18f')
 
